@@ -38,7 +38,8 @@ class CommonEndpoint(TransactionCase):
     def _get_mocked_request(
         self, env=None, httprequest=None, extra_headers=None, request_attrs=None
     ):
-        with MockRequest(env or self.env) as mocked_request:
+        current_website = self.env['website'].get_current_website()
+        with MockRequest(env or self.env, website=current_website) as mocked_request:
             mocked_request.httprequest = (
                 DotDict(httprequest) if httprequest else mocked_request.httprequest
             )
@@ -49,5 +50,5 @@ class CommonEndpoint(TransactionCase):
             for k, v in request_attrs.items():
                 setattr(mocked_request, k, v)
             mocked_request.make_response = lambda data, **kw: data
-            mocked_request.registry._init_modules = set()
+            mocked_request.registry._init_modules.union(['website'])
             yield mocked_request
